@@ -6,7 +6,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.andressantibanez.wearable"
+        applicationId "com.example.android.sunshine.app"
         minSdkVersion 22
         targetSdkVersion 23
         versionCode 1
