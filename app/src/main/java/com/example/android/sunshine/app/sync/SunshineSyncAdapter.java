@@ -120,14 +120,25 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
         Log.d(LOG_TAG, "Google Api Connected!");
     }
 
-    private void notifyWearables(String highTemp, String lowTemp, int iconId) {
+    private void notifyWearables() {
         if(mGoogleApiClient == null || !mGoogleApiClient.isConnected()) {
             Log.e(LOG_TAG, "Not connected :(");
             return;
         }
 
-        Log.d(LOG_TAG, "Sending data to wearables...");
+        //Get weather information
+        String locationQuery = Utility.getPreferredLocation(getContext());
+        Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, System.currentTimeMillis());
+        Cursor cursor = getContext().getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
+        if (cursor == null || !cursor.moveToFirst())
+            return;
 
+        //Send data to wearable
+        Log.d(LOG_TAG, "Sending data to wearables...");
+        int weatherId = cursor.getInt(INDEX_WEATHER_ID);
+        String highTemp = Utility.formatTemperature(getContext(), cursor.getDouble(INDEX_MAX_TEMP));
+        String lowTemp = Utility.formatTemperature(getContext(), cursor.getDouble(INDEX_MIN_TEMP));
+        int iconId = Utility.getIconResourceForWeatherCondition(weatherId);
 
         Bitmap iconBitmap = BitmapFactory.decodeResource(getContext().getResources(), iconId);
 
@@ -424,6 +435,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
                 updateWidgets();
                 updateMuzei();
                 notifyWeather();
+                notifyWearables();
             }
 
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
@@ -486,9 +498,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
                     Resources resources = context.getResources();
                     int artResourceId = Utility.getArtResourceForWeatherCondition(weatherId);
                     String artUrl = Utility.getArtUrlForWeatherCondition(context, weatherId);
-
-                    //TODO: Notify wearable
-                    notifyWearables(String.valueOf(high), String.valueOf(low), iconId);
 
                     // On Honeycomb and higher devices, we can retrieve the size of the large icon
                     // Prior to that, we use a fixed size

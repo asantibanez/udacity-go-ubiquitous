@@ -164,10 +164,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
 
-            //Icon
-            mIcon = BitmapFactory.decodeResource(getResources(), R.drawable.art_clear);
-
-
             //Get paint colors
             //Background
             mBackgroundPaint = new Paint();
@@ -346,7 +342,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                 float tempYOffset = dateYOffset + getResources().getDimension(R.dimen.digital_date_text_margin_bottom);
                 //Icon
                 if(mIcon != null && !mLowBitAmbient)
-                    canvas.drawBitmap(mIcon, centerX - mIcon.getWidth(), tempYOffset - mIcon.getHeight() / 2, mIconPaint);
+                    canvas.drawBitmap(mIcon, centerX - mIcon.getWidth() - mIcon.getWidth()/4, tempYOffset - mIcon.getHeight() / 2, mIconPaint);
                 //High temp
                 canvas.drawText(mHighTemp, centerX, tempYOffset, mHighTempPaint);
                 //Low temp
@@ -421,8 +417,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     DataItem item = event.getDataItem();
                     if (item.getUri().getPath().compareTo("/sunshine-temp-update") == 0) {
                         DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-                        mHighTemp = dataMap.getString("high-temp") + "º";
-                        mLowTemp = dataMap.getString("low-temp") + "º";
+                        mHighTemp = dataMap.getString("high-temp");
+                        mLowTemp = dataMap.getString("low-temp");
                         new GetBitmapForWeatherTask().execute(dataMap.getAsset("icon"));
 
                         invalidate();
@@ -456,6 +452,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             protected Void doInBackground(Asset... assets) {
                 Asset asset = assets[0];
                 mIcon = loadBitmapFromAsset(asset);
+
+                int size = Double.valueOf(SunshineWatchFace.this.getResources().getDimension(R.dimen.digital_icon_size)).intValue();
+                mIcon = Bitmap.createScaledBitmap(mIcon, size, size, false);
                 postInvalidate();
 
                 return null;
